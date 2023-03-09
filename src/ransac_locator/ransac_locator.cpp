@@ -102,9 +102,6 @@ LOCATOR_RETURN calculate_pos_robust_ransac(std::unordered_map<int, Position3D> a
                     }
                 }
             }
-        }
-        if (fit_success == true)
-        {
             return CALCULATE_SUCCESS;
         }
         else
@@ -140,7 +137,7 @@ LOCATOR_RETURN calculate_pos_with_index_(std::unordered_map<int, Position3D> anc
     }
 
     int matrix_row_num = effective_landmark_indexes.size() - 1;
-    int coefficient_num = 2;
+    int coefficient_num = 3;
     // Ax=b
     gsl_matrix *A = gsl_matrix_alloc(matrix_row_num, coefficient_num);
     gsl_matrix *a = gsl_matrix_alloc(matrix_row_num, coefficient_num);
@@ -160,10 +157,13 @@ LOCATOR_RETURN calculate_pos_with_index_(std::unordered_map<int, Position3D> anc
         int index_i = effective_landmark_indexes[i];
         gsl_matrix_set(A, i, 0, (anchorPoseMap[index_i].x - anchorPoseMap[index_last].x) * 2);
         gsl_matrix_set(A, i, 1, (anchorPoseMap[index_i].y - anchorPoseMap[index_last].y) * 2);
+        gsl_matrix_set(A, i, 2, (anchorPoseMap[index_i].z - anchorPoseMap[index_last].z) * 2);
         double bi = anchorPoseMap[index_i].x * anchorPoseMap[index_i].x -
                     anchorPoseMap[index_last].x * anchorPoseMap[index_last].x +
                     anchorPoseMap[index_i].y * anchorPoseMap[index_i].y -
                     anchorPoseMap[index_last].y * anchorPoseMap[index_last].y +
+                    anchorPoseMap[index_i].z * anchorPoseMap[index_i].z -
+                    anchorPoseMap[index_last].z * anchorPoseMap[index_last].z +
                     distances[index_last] * distances[index_last] -
                     distances[index_i] * distances[index_i];
         gsl_vector_set(b, i, bi);
@@ -187,7 +187,7 @@ LOCATOR_RETURN calculate_pos_with_index_(std::unordered_map<int, Position3D> anc
 
     res.x = gsl_vector_get(sx, 0);
     res.y = gsl_vector_get(sx, 1);
-
+    res.z = gsl_vector_get(sx, 2);
     gsl_matrix_free(A);
     gsl_matrix_free(a);
     gsl_vector_free(b);

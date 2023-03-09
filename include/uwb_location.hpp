@@ -12,7 +12,6 @@
 #include "tinyxml2/tinyxml2.hpp"
 #include "ransac_locator/ransac_locator.hpp"
 
-#include "uwb_interfaces/msg/uwb_location_data.hpp"
 #include "uwb_interfaces/msg/uwb_data.hpp"
 
 class UWBLocation : public rclcpp::Node
@@ -27,7 +26,7 @@ private:
     
     rclcpp::Subscription<uwb_interfaces::msg::UWBData>::SharedPtr subscription_;
 
-    rclcpp::Publisher<uwb_interfaces::msg::UWBLocationData>::SharedPtr msgPublisher_;
+    rclcpp::Publisher<geometry_msgs::msg::Point>::SharedPtr msgPublisher_;
     
     // std::unordered_map<int, geometry_msgs::msg::Point> anchorPoseMap;
 

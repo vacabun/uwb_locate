@@ -16,8 +16,8 @@
 
 #include "nav_msgs/msg/odometry.hpp"
 
-#define RANSAC_LEAST_CNT 4
-#define CALCULABLE_LEAST_CNT 3
+#define RANSAC_LEAST_CNT 5
+#define CALCULABLE_LEAST_CNT 4
 #define ENABLE_RANSAC_REFINE 1
 #define PI 3.1415926535
 #define EPS 0.0000001

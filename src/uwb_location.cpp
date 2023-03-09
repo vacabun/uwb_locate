@@ -2,18 +2,27 @@
 
 UWBLocation::UWBLocation() : Node("uwb_location")
 {
+    this->declare_parameter("label_name", "x500_0");
+    std::string labelName =
+        this->get_parameter("label_name").get_parameter_value().get<std::string>();
+
     this->load_anchors_pos();
 
-    subscription_ = this->create_subscription<uwb_interfaces::msg::UWBData>(
-        "/uwbData", 10, std::bind(&UWBLocation::topic_callback, this, std::placeholders::_1));
+    std::string subscribeTopicName = "/uwbData/" + labelName;
+    RCLCPP_INFO(this->get_logger(), "subscribe topic : %s", subscribeTopicName.c_str());
 
-    msgPublisher_ = this->create_publisher<uwb_interfaces::msg::UWBLocationData>("uwbLocationRes", 10);
+    subscription_ = this->create_subscription<uwb_interfaces::msg::UWBData>(
+        subscribeTopicName, 10, std::bind(&UWBLocation::topic_callback, this, std::placeholders::_1));
+
+    std::string publishTopic = "uwbLocationRes/" + labelName;
+    msgPublisher_ = this->create_publisher<geometry_msgs::msg::Point>(publishTopic, 10);
+    RCLCPP_INFO(this->get_logger(), "publish topic : /%s", publishTopic.c_str());
 }
 
 void UWBLocation::topic_callback(const uwb_interfaces::msg::UWBData::SharedPtr msg)
 {
 
-    std::string labelName = msg->label_name;
+    // std::string labelName = msg->label_name;
 
     std::unordered_map<int, double> uwbDistance;
     for (long unsigned int i = 0; i < msg->distances.size(); i++)
@@ -26,23 +35,19 @@ void UWBLocation::topic_callback(const uwb_interfaces::msg::UWBData::SharedPtr m
     calState = calculate_pos_robust_ransac(anchorPoseMap, uwbDistance, estimatedRes);
     if (calState == CALCULATE_SUCCESS)
     {
-        RCLCPP_INFO(this->get_logger(), "label: %s uwb location success. res: x: %f, y: %f", 
-        labelName.c_str(), estimatedRes.x, estimatedRes.y);
+        // RCLCPP_INFO(this->get_logger(), "uwb location success. res: x: %f, y: %f, z:%f ",
+        //             estimatedRes.x, estimatedRes.y, estimatedRes.z);
+        geometry_msgs::msg::Point data;
+        data.set__x(estimatedRes.x);
+        data.set__y(estimatedRes.y);
+        data.set__z(estimatedRes.z);
+
+        msgPublisher_->publish(data);
     }
     else
     {
-        RCLCPP_INFO(this->get_logger(), "label: %s uwb location failed (type: %d). res: x: %f, y: %f", 
-        labelName.c_str(),calState, estimatedRes.x, estimatedRes.y);
+        RCLCPP_INFO(this->get_logger(), "uwb location failed (type: %d). ", calState);
     }
-
-    uwb_interfaces::msg::UWBLocationData data;
-
-    data.set__label_name(labelName);
-
-    data.set__x(estimatedRes.x);
-    data.set__y(estimatedRes.y);
-
-    msgPublisher_->publish(data);
 }
 
 void UWBLocation::load_anchors_pos()
@@ -91,4 +96,3 @@ void UWBLocation::load_anchors_pos()
         anchor = anchor->NextSiblingElement();
     }
 }
-
