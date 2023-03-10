@@ -14,9 +14,9 @@ UWBLocation::UWBLocation() : Node("uwb_location")
     subscription_ = this->create_subscription<uwb_interfaces::msg::UWBData>(
         subscribeTopicName, 10, std::bind(&UWBLocation::topic_callback, this, std::placeholders::_1));
 
-    std::string publishTopic = "uwbLocationRes/" + labelName;
+    std::string publishTopic = "/uwbLocationRes/" + labelName;
     msgPublisher_ = this->create_publisher<geometry_msgs::msg::Point>(publishTopic, 10);
-    RCLCPP_INFO(this->get_logger(), "publish topic : /%s", publishTopic.c_str());
+    RCLCPP_INFO(this->get_logger(), "publish topic : %s", publishTopic.c_str());
 }
 
 void UWBLocation::topic_callback(const uwb_interfaces::msg::UWBData::SharedPtr msg)
