@@ -27,7 +27,7 @@ void UWBLocation::topic_callback(const uwb_interfaces::msg::UWBData::SharedPtr m
     std::unordered_map<int, double> uwbDistance;
     for (long unsigned int i = 0; i < msg->distances.size(); i++)
     {
-        uwbDistance[msg->distances[i].anchor_id] = msg->distances[i].distance;
+        uwbDistance[msg->distances[i].id] = msg->distances[i].distance;
     }
 
     Position3D estimatedRes;
