@@ -7,15 +7,16 @@ UWBLocation::UWBLocation() : Node("uwb_location")
         this->get_parameter("label_name").get_parameter_value().get<std::string>();
 
     this->load_anchors_pos();
-
+    rclcpp::SensorDataQoS qos;
+    qos.keep_last(1);
     std::string subscribeTopicName = "/uwbData/" + labelName;
     RCLCPP_INFO(this->get_logger(), "subscribe topic : %s", subscribeTopicName.c_str());
 
     subscription_ = this->create_subscription<uwb_interfaces::msg::UWBData>(
-        subscribeTopicName, 10, std::bind(&UWBLocation::topic_callback, this, std::placeholders::_1));
+        subscribeTopicName, qos, std::bind(&UWBLocation::topic_callback, this, std::placeholders::_1));
 
     std::string publishTopic = "/uwbLocationRes/" + labelName;
-    msgPublisher_ = this->create_publisher<geometry_msgs::msg::Point>(publishTopic, 10);
+    msgPublisher_ = this->create_publisher<geometry_msgs::msg::Point>(publishTopic, qos);
     RCLCPP_INFO(this->get_logger(), "publish topic : %s", publishTopic.c_str());
 }
 
@@ -27,7 +28,7 @@ void UWBLocation::topic_callback(const uwb_interfaces::msg::UWBData::SharedPtr m
     std::unordered_map<int, double> uwbDistance;
     for (long unsigned int i = 0; i < msg->distances.size(); i++)
     {
-        uwbDistance[msg->distances[i].id] = msg->distances[i].distance;
+        uwbDistance[msg->distances[i].dest] = msg->distances[i].distance;
     }
 
     Position3D estimatedRes;
