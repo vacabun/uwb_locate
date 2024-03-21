@@ -24,6 +24,7 @@ find_package(rclpy REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(uwb_interfaces REQUIRED)
+find_package(gz-transport12 QUIET REQUIRED OPTIONAL_COMPONENTS log)
 
 find_package( PkgConfig REQUIRED)
 pkg_check_modules( gsl REQUIRED gsl )
@@ -45,6 +46,18 @@ ament_python_install_package(${PROJECT_NAME})
 
 install(TARGETS
   uwb_location
+  DESTINATION lib/${PROJECT_NAME})
+
+add_executable(gz_forwarder
+src/gz_forwarder.cpp 
+)
+set(GZ_TRANSPORT_VER ${gz-transport12_VERSION_MAJOR})
+target_link_libraries(gz_forwarder gz-transport${GZ_TRANSPORT_VER}::core)
+
+ament_target_dependencies(gz_forwarder rclcpp ament_index_cpp geometry_msgs)
+
+install(TARGETS
+gz_forwarder
   DESTINATION lib/${PROJECT_NAME})
 
 install(DIRECTORY launch
